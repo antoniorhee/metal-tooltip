@@ -18,6 +18,7 @@ class TooltipBase extends Component {
 	 */
 	attached() {
 		this.align();
+
 		this.syncTriggerEvents(this.triggerEvents);
 	}
 
@@ -26,6 +27,7 @@ class TooltipBase extends Component {
 	 */
 	created() {
 		this.currentAlignElement = this.alignElement;
+
 		this.eventHandler_ = new EventHandler();
 	}
 
@@ -41,6 +43,7 @@ class TooltipBase extends Component {
 	 */
 	disposeInternal() {
 		super.disposeInternal();
+
 		clearTimeout(this.delay_);
 	}
 
@@ -73,10 +76,12 @@ class TooltipBase extends Component {
 	handleHide(event) {
 		const delegateTarget = event.delegateTarget;
 		const interactingWithDifferentTarget = delegateTarget && (delegateTarget !== this.currentAlignElement);
+
 		this.callAsync_(function() {
 			if (this.locked_) {
 				return;
 			}
+
 			if (interactingWithDifferentTarget) {
 				this.currentAlignElement = delegateTarget;
 			} else {
@@ -93,10 +98,19 @@ class TooltipBase extends Component {
 	 */
 	handleShow(event) {
 		const delegateTarget = event.delegateTarget;
+
+		const dataTitle = delegateTarget.getAttribute('data-title');
+
 		super.syncVisible(true);
+
 		this.callAsync_(function() {
 			this.currentAlignElement = delegateTarget;
 			this.visible = true;
+
+			if (dataTitle) {
+				this.title = dataTitle;
+			}
+
 		}, this.delay[0]);
 	}
 
@@ -127,6 +141,7 @@ class TooltipBase extends Component {
 	 */
 	unlock(event) {
 		this.locked_ = false;
+
 		this.handleHide(event);
 	}
 
@@ -148,11 +163,8 @@ class TooltipBase extends Component {
 		if (prevAlignElement) {
 			alignElement.removeAttribute('aria-describedby');
 		}
+
 		if (alignElement) {
-			const dataTitle = alignElement.getAttribute('data-title');
-			if (dataTitle) {
-				this.title = dataTitle;
-			}
 			if (this.inDocument) {
 				this.alignedPosition = TooltipBase.Align.align(this.element, alignElement, this.position);
 			}
@@ -178,11 +190,14 @@ class TooltipBase extends Component {
 	 * @param {!Array<string>} triggerEvents
 	 */
 	syncTriggerEvents(triggerEvents) {
+		const selector = this.selector;
+
+		this.eventHandler_.removeAllListeners();
+
 		if (!this.inDocument) {
 			return;
 		}
-		this.eventHandler_.removeAllListeners();
-		const selector = this.selector;
+
 		if (!selector) {
 			return;
 		}
@@ -197,7 +212,8 @@ class TooltipBase extends Component {
 		} else {
 			this.eventHandler_.add(
 				dom.delegate(document, triggerEvents[0], selector, this.handleShow.bind(this)),
-				dom.delegate(document, triggerEvents[1], selector, this.handleHide.bind(this)));
+				dom.delegate(document, triggerEvents[1], selector, this.handleHide.bind(this))
+			);
 		}
 	}
 
